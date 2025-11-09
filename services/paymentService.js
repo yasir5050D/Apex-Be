@@ -10,7 +10,7 @@ class PaymentService {
             apiKey: process.env.SMEPAY_API_KEY,
             secretKey: process.env.SMEPAY_SECRET_KEY
         };
-        this.isDevelopment = process.env.NODE_ENV === 'development' || !this.config.apiKey || this.config.apiKey === 'your_smepay_api_key_here';
+        this.isDevelopment = process.env.NODE_ENV === 'development' || !this.config.apiKey || this.config.apiKey === process.env.SMEPAY_API_KEY;
     }
 
     // async initiatePayment(userId, amount, currency = 'INR', metadata = {}) {
@@ -236,12 +236,12 @@ class PaymentService {
 
             // 🟢 STEP 1: Authenticate with SMEPay
             console.log('🔑 Authenticating with SMEPay...');
-            const authResponse = await axios.post('https://extranet.smepay.in/api/wiz/external/auth', {
+            const authResponse = await axios.post('https://staging.smepay.in/api/wiz/external/auth', {
                 client_id: process.env.SMEPAY_API_KEY,
                 client_secret: process.env.SMEPAY_SECRET_KEY
             });
 
-            const accessToken = authResponse.data?.data?.access_token;
+            const accessToken = authResponse.data?.access_token;
             if (!accessToken) {
                 throw new Error('Failed to get access token from SMEPay');
             }
@@ -251,10 +251,10 @@ class PaymentService {
             // 🟢 STEP 2: Create Order
             console.log('📦 Creating order with SMEPay...');
             const orderPayload = {
-                client_id: process.env.SMEPAY_CLIENT_ID,
+                client_id: process.env.SMEPAY_API_KEY,
                 amount: amount.toString(),
                 order_id: orderId,
-                callback_url: `${process.env.BASE_URL}/api/payments/callback`,
+                callback_url: `http://localhost:5000/api/payments/callback`,
                 customer_details: {
                     email: user.email,
                     mobile: user.phoneNumber,
@@ -275,12 +275,13 @@ class PaymentService {
 
             console.log('✅ SMEPay Order Created:', orderResponse.data);
 
-            const orderData = orderResponse.data?.data || {};
+            const orderData = orderResponse.data || {};
 
             // 🧾 STEP 3: Save payment record
             const payment = new Payment({
                 user: userId,
                 amount,
+                smepayOrderId: orderResponse.data.order_id,
                 currency,
                 paymentReference,
                 orderSlug: orderData.order_slug || orderSlug,
@@ -303,7 +304,7 @@ class PaymentService {
                 message: 'Payment initiated successfully',
                 data: {
                     paymentId: payment._id,
-                    order_id: payment.smepayTransactionId,
+                    order_id: orderResponse?.data?.order_id,
                     order_slug: payment.orderSlug,
                     payment_reference: paymentReference,
                     amount,

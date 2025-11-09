@@ -1,4 +1,3 @@
-// models/User.js
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
@@ -9,6 +8,7 @@ const userSchema = new mongoose.Schema({
     minlength: [2, 'Name must be at least 2 characters long'],
     maxlength: [100, 'Name cannot exceed 100 characters']
   },
+
   email: {
     type: String,
     required: [true, 'Email is required'],
@@ -16,26 +16,43 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     trim: true,
     validate: {
-      validator: function(email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      validator: function (email) {
+        // Strict RFC-like validation for email
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/;
         return emailRegex.test(email);
       },
-      message: 'Please provide a valid email address'
+      message: 'Please provide a valid email address (e.g., name@example.com)'
     }
   },
+
   phoneNumber: {
     type: String,
     required: [true, 'Phone number is required'],
     trim: true,
     validate: {
-      validator: function(phone) {
-        // Basic phone validation - adjust based on your requirements
-        const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-        return phoneRegex.test(phone.replace(/\D/g, ''));
+      validator: function (phone) {
+        // ✅ Strict 10-digit Indian format + optional country code (+91)
+        const phoneRegex = /^(\+91[\-\s]?)?[6-9]\d{9}$/;
+        return phoneRegex.test(phone);
       },
-      message: 'Please provide a valid phone number'
+      message: 'Please provide a valid 10-digit mobile number'
     }
   },
+
+  district: {
+    type: String,
+    trim: true,
+    maxlength: [100, 'District name cannot exceed 100 characters']
+  },
+
+  tehsil: {
+    type: String,
+    required: [true, 'Tehsil is required'],
+    trim: true,
+    minlength: [3, 'Tehsil must be at least 3 characters long'],
+    maxlength: [100, 'Tehsil cannot exceed 100 characters']
+  },
+
   address: {
     street: {
       type: String,
@@ -56,7 +73,7 @@ const userSchema = new mongoose.Schema({
       type: String,
       trim: true,
       maxlength: [100, 'Country cannot exceed 100 characters'],
-      default: 'United States'
+      default: 'India'
     },
     zipCode: {
       type: String,
@@ -64,44 +81,48 @@ const userSchema = new mongoose.Schema({
       maxlength: [20, 'ZIP code cannot exceed 20 characters']
     }
   },
+
   registrationDate: {
     type: Date,
     default: Date.now
   },
+
   isActive: {
     type: Boolean,
     default: false
   },
+
   status: {
     type: String,
     enum: ['active', 'inactive', 'suspended'],
     default: 'inactive'
   },
+
   lastPaymentDate: {
     type: Date
   },
+
   lastLogin: {
     type: Date
   }
 }, {
-  timestamps: true, // Adds createdAt and updatedAt automatically
+  timestamps: true, // adds createdAt and updatedAt
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
 });
 
-// Virtual for full address
-userSchema.virtual('fullAddress').get(function() {
+// 🔹 Virtual for full address
+userSchema.virtual('fullAddress').get(function () {
   const addressParts = [];
   if (this.address.street) addressParts.push(this.address.street);
   if (this.address.city) addressParts.push(this.address.city);
   if (this.address.state) addressParts.push(this.address.state);
   if (this.address.country) addressParts.push(this.address.country);
   if (this.address.zipCode) addressParts.push(this.address.zipCode);
-  
   return addressParts.join(', ') || 'No address provided';
 });
 
-// Virtual for getting user's payments
+// 🔹 Virtual relation to payments
 userSchema.virtual('payments', {
   ref: 'Payment',
   localField: '_id',
@@ -109,41 +130,40 @@ userSchema.virtual('payments', {
   justOne: false
 });
 
-// Index for better query performance
+// 🔹 Indexes
 userSchema.index({ email: 1 });
 userSchema.index({ phoneNumber: 1 });
 userSchema.index({ 'address.country': 1 });
 userSchema.index({ registrationDate: -1 });
 userSchema.index({ status: 1 });
 
-// Static method to find active users
-userSchema.statics.findActiveUsers = function() {
+// 🔹 Static method: find active users
+userSchema.statics.findActiveUsers = function () {
   return this.find({ isActive: true, status: 'active' });
 };
 
-// Instance method to check if user can make payment
-userSchema.methods.canMakePayment = function() {
+// 🔹 Instance method: check payment eligibility
+userSchema.methods.canMakePayment = function () {
   return this.status === 'active' || this.status === 'inactive';
 };
 
-// Middleware to update lastLogin field
-userSchema.methods.updateLastLogin = function() {
+// 🔹 Instance method: update last login
+userSchema.methods.updateLastLogin = function () {
   this.lastLogin = new Date();
   return this.save();
 };
 
-// Pre-save middleware to validate data
-userSchema.pre('save', function(next) {
-  // Format phone number by removing non-digit characters
+// 🔹 Pre-save middleware for cleanup
+userSchema.pre('save', function (next) {
   if (this.phoneNumber && this.isModified('phoneNumber')) {
-    this.phoneNumber = this.phoneNumber.replace(/\D/g, '');
+    // Normalize phone number: remove spaces/dashes
+    this.phoneNumber = this.phoneNumber.replace(/\s|-/g, '');
   }
-  
-  // Ensure email is lowercase
+
   if (this.email && this.isModified('email')) {
     this.email = this.email.toLowerCase().trim();
   }
-  
+
   next();
 });
 

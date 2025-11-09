@@ -3,16 +3,11 @@ const Joi = require('joi');
 
 const validateUserRegistration = (req, res, next) => {
   const schema = Joi.object({
-    name: Joi.string().min(2).max(100).required().trim(),
+    firstName: Joi.string().min(2).max(100).required().trim(),
+    lastName: Joi.string().min(2).max(100).required().trim(),
     email: Joi.string().email().required().trim().lowercase(),
     phoneNumber: Joi.string().min(10).max(15).required().trim(),
-    address: Joi.object({
-      street: Joi.string().max(200).allow('').optional(),
-      city: Joi.string().max(100).allow('').optional(),
-      state: Joi.string().max(100).allow('').optional(),
-      country: Joi.string().max(100).allow('').optional(),
-      zipCode: Joi.string().max(20).allow('').optional()
-    }).optional()
+    address: Joi.object({}).optional()
   });
 
   const { error } = schema.validate(req.body);

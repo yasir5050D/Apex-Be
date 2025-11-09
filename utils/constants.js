@@ -27,7 +27,7 @@ const CURRENCIES = {
   KES: 'KES'
 };
 
-const REGISTRATION_FEE = 100; // $1.00 in cents
+const REGISTRATION_FEE =1; // $1.00 in cents
 
 module.exports = {
   PAYMENT_STATUS,
