@@ -53,7 +53,7 @@
 
 // //       // Send appropriate email based on payment status
 // //       const payment = await Payment.findById(result.paymentId).populate('user');
-      
+
 // //       if (result.status === 'completed') {
 // //         await emailService.sendPaymentConfirmationEmail(payment.user, payment);
 // //       } else if (result.status === 'failed') {
@@ -203,7 +203,7 @@
 //     try {
 //       console.log('🔄 Initiating payment for user:', userId);
 //       console.log('🔧 Development mode:', this.isDevelopment);
-      
+
 //       const user = await User.findById(userId);
 //       if (!user) {
 //         throw new Error('User not found');
@@ -326,7 +326,7 @@
 //       } else if (order_slug) {
 //         payment = await Payment.findOne({ orderSlug: order_slug });
 //       }
-      
+
 //       if (!payment) {
 //         throw new Error('Payment not found');
 //       }
@@ -337,7 +337,7 @@
 
 //       if (status === 'success') {
 //         payment.completedAt = new Date();
-        
+
 //         // Activate user
 //         await User.findByIdAndUpdate(payment.user, {
 //           isActive: true,
@@ -419,7 +419,7 @@
 //   async cancelPayment(paymentReference) {
 //     try {
 //       const payment = await Payment.findOne({ paymentReference });
-      
+
 //       if (!payment) {
 //         throw new Error('Payment not found');
 //       }
@@ -445,7 +445,7 @@
 //   async simulatePaymentSuccess(orderSlug) {
 //     try {
 //       console.log('🎯 Simulating successful payment for:', orderSlug);
-      
+
 //       const payment = await Payment.findOne({ orderSlug });
 //       if (!payment) {
 //         throw new Error('Payment not found');
@@ -483,7 +483,7 @@
 //   async simulatePaymentFailure(orderSlug, reason = 'Payment failed in simulation') {
 //     try {
 //       console.log('🎯 Simulating failed payment for:', orderSlug);
-      
+
 //       const payment = await Payment.findOne({ orderSlug });
 //       if (!payment) {
 //         throw new Error('Payment not found');
@@ -537,7 +537,7 @@ const paymentController = {
   async initiateRegistrationPayment(req, res) {
     try {
       console.log('🔄 Payment initiation request:', req.body);
-      
+
       const { userId } = req.body;
 
       const user = await User.findById(userId);
@@ -581,21 +581,21 @@ const paymentController = {
   async handleCallback(req, res) {
     try {
       console.log('🔄 Payment callback received:', req.body);
-      
+
       const result = await paymentService.handlePaymentCallback(req.body);
 
       // Send appropriate email based on payment status
       const payment = await Payment.findById(result.paymentId).populate('user');
-      
+
       if (result.status === 'completed') {
         await emailService.sendPaymentConfirmationEmail(payment.user, payment);
       } else if (result.status === 'failed') {
         await emailService.sendPaymentFailedEmail(payment.user, payment);
       }
 
-      res.json({ 
-        success: true, 
-        message: 'Callback processed successfully' 
+      res.json({
+        success: true,
+        message: 'Callback processed successfully'
       });
 
     } catch (error) {
@@ -606,27 +606,158 @@ const paymentController = {
       });
     }
   },
+  // async updatePaymentStatus(req, res) {
+  //   try {
+  //     const { orderId } = req.params;
+  //     const status = await paymentService.getPaymentStatus(orderId);
 
-  // Get payment status
-  async getPaymentStatus(req, res) {
+  //     res.json({
+  //       success: true,
+  //       data: status
+  //     });
+
+  //   } catch (error) {
+  //     console.error('❌ Get payment status error:', error);
+  //     res.status(500).json({
+  //       success: false,
+  //       error: error.message
+  //     });
+  //   }
+  // },
+  // // Get payment status
+  // async getPaymentStatus(req, res) {
+  //   try {
+  //     const { reference } = req.params;
+  //     const status = await paymentService.getPaymentStatus(reference);
+
+  //     res.json({
+  //       success: true,
+  //       data: status
+  //     });
+
+  //   } catch (error) {
+  //     console.error('❌ Get payment status error:', error);
+  //     res.status(500).json({
+  //       success: false,
+  //       error: error.message
+  //     });
+  //   }
+  // },
+  //Update payment status
+
+  //Check status
+  async getPaymentStatus(paymentReference) {
     try {
-      const { reference } = req.params;
-      const status = await paymentService.getPaymentStatus(reference);
+      const payment = await Payment.findOne({
+        $or: [
+          { smepayOrderId: paymentReference },
+          { paymentReference: paymentReference }
+        ]
+      }).populate('user', 'name email phoneNumber isActive');
 
-      res.json({
-        success: true,
-        data: status
-      });
+      if (!payment) {
+        // Return success: false instead of throwing error
+        return null;
+      }
+
+      return {
+        paymentReference: payment.paymentReference,
+        order_slug: payment.orderSlug,
+        amount: payment.amount,
+        currency: payment.currency,
+        status: payment.status,
+        initiatedAt: payment.initiatedAt,
+        completedAt: payment.completedAt,
+        user: payment.user,
+        failureReason: payment.failureReason,
+        isMock: payment.metadata?.isMock || false
+      };
 
     } catch (error) {
-      console.error('❌ Get payment status error:', error);
-      res.status(500).json({
-        success: false,
-        error: error.message
-      });
+      console.error('Get payment status error:', error);
+      return null;
     }
   },
 
+  // Updated controller
+  // Add this to your paymentService
+  async updatePaymentStatus(orderId, newStatus, additionalData = {}) {
+    try {
+      const updateFields = {
+        status: newStatus,
+        updatedAt: new Date()
+      };
+
+      // Add completedAt if status is success/failed
+      if (['success', 'failed', 'completed'].includes(newStatus)) {
+        updateFields.completedAt = new Date();
+      }
+
+      // Add failure reason if provided
+      if (additionalData.failureReason) {
+        updateFields.failureReason = additionalData.failureReason;
+      }
+
+      // Find and update the payment
+      const payment = await Payment.findOneAndUpdate(
+        {
+          $or: [
+            { smepayOrderId: orderId },
+            { paymentReference: orderId },
+            { orderSlug: orderId }
+          ]
+        },
+        updateFields,
+        { new: true, runValidators: true } // Return updated document
+      ).populate('user', 'name email phoneNumber isActive');
+
+      if (!payment) {
+        throw new Error('Payment not found');
+      }
+
+      return {
+        paymentReference: payment.paymentReference,
+        order_slug: payment.orderSlug,
+        amount: payment.amount,
+        currency: payment.currency,
+        status: payment.status, // This will be the UPDATED status
+        initiatedAt: payment.initiatedAt,
+        completedAt: payment.completedAt,
+        user: payment.user,
+        failureReason: payment.failureReason,
+        isMock: payment.metadata?.isMock || false
+      };
+
+    } catch (error) {
+      console.error('Update payment status error:', error);
+      throw new Error(`Payment update failed: ${error.message}`);
+    }
+  },
+  // async updatePaymentStatus(req, res) {
+  //     try {
+  //       const { orderId } = req.params;
+  //       const status = await paymentService.getPaymentStatus(orderId);
+
+  //       if (!status) {
+  //         return res.json({
+  //           success: false,
+  //           error: 'Payment not found'
+  //         });
+  //       }
+
+  //       res.json({
+  //         success: true,
+  //         data: status
+  //       });
+
+  //     } catch (error) {
+  //       console.error('❌ Get payment status error:', error);
+  //       res.status(500).json({
+  //         success: false,
+  //         error: error.message
+  //       });
+  //     }
+  //   },
   // Get user payment history
   async getUserPayments(req, res) {
     try {
@@ -634,8 +765,8 @@ const paymentController = {
       const { limit = 10, page = 1 } = req.query;
 
       const payments = await paymentService.getUserPayments(
-        userId, 
-        parseInt(limit), 
+        userId,
+        parseInt(limit),
         parseInt(page)
       );
 

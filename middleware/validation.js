@@ -5,9 +5,12 @@ const validateUserRegistration = (req, res, next) => {
   const schema = Joi.object({
     firstName: Joi.string().min(2).max(100).required().trim(),
     lastName: Joi.string().min(2).max(100).required().trim(),
+    parentage: Joi.string().min(2).max(100).required().trim(),
     email: Joi.string().email().required().trim().lowercase(),
     phoneNumber: Joi.string().min(10).max(15).required().trim(),
-    address: Joi.object({}).optional()
+    tehsil: Joi.string().min(5).max(20).required().trim(),
+    district: Joi.string().min(5).max(20).required().trim(),
+    address: Joi.string().min(10).max(500).required().trim()
   });
 
   const { error } = schema.validate(req.body);

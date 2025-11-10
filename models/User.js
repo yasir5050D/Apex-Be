@@ -1,14 +1,27 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-  name: {
+  firstName: {
     type: String,
-    required: [true, 'Name is required'],
+    required: [true, 'First Name is required'],
     trim: true,
-    minlength: [2, 'Name must be at least 2 characters long'],
-    maxlength: [100, 'Name cannot exceed 100 characters']
+    minlength: [2, 'First Name must be at least 2 characters long'],
+    maxlength: [100, 'First Name cannot exceed 100 characters']
   },
-
+  lastName: {
+    type: String,
+    required: [true, 'Last Name is required'],
+    trim: true,
+    minlength: [2, 'Last Name must be at least 2 characters long'],
+    maxlength: [100, 'Last Name cannot exceed 100 characters']
+  },
+  parentage: {
+    type: String,
+    required: [true, 'Parentage is required'],
+    trim: true,
+    minlength: [2, 'Parentage must be at least 2 characters long'],
+    maxlength: [100, 'Parentage cannot exceed 100 characters']
+  },
   email: {
     type: String,
     required: [true, 'Email is required'],
@@ -54,32 +67,36 @@ const userSchema = new mongoose.Schema({
   },
 
   address: {
-    street: {
-      type: String,
-      trim: true,
-      maxlength: [200, 'Street cannot exceed 200 characters']
-    },
-    city: {
-      type: String,
-      trim: true,
-      maxlength: [100, 'City cannot exceed 100 characters']
-    },
-    state: {
-      type: String,
-      trim: true,
-      maxlength: [100, 'State cannot exceed 100 characters']
-    },
-    country: {
-      type: String,
-      trim: true,
-      maxlength: [100, 'Country cannot exceed 100 characters'],
-      default: 'India'
-    },
-    zipCode: {
-      type: String,
-      trim: true,
-      maxlength: [20, 'ZIP code cannot exceed 20 characters']
-    }
+    type: String,
+    trim: true,
+    maxlength: [500, 'Address cannot exceed 500 characters'],
+    default: ''
+    // street: {
+    //   type: String,
+    //   trim: true,
+    //   maxlength: [200, 'Street cannot exceed 200 characters']
+    // },
+    // city: {
+    //   type: String,
+    //   trim: true,
+    //   maxlength: [100, 'City cannot exceed 100 characters']
+    // },
+    // state: {
+    //   type: String,
+    //   trim: true,
+    //   maxlength: [100, 'State cannot exceed 100 characters']
+    // },
+    // country: {
+    //   type: String,
+    //   trim: true,
+    //   maxlength: [100, 'Country cannot exceed 100 characters'],
+    //   default: 'India'
+    // },
+    // zipCode: {
+    //   type: String,
+    //   trim: true,
+    //   maxlength: [20, 'ZIP code cannot exceed 20 characters']
+    // }
   },
 
   registrationDate: {
@@ -111,17 +128,6 @@ const userSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// 🔹 Virtual for full address
-userSchema.virtual('fullAddress').get(function () {
-  const addressParts = [];
-  if (this.address.street) addressParts.push(this.address.street);
-  if (this.address.city) addressParts.push(this.address.city);
-  if (this.address.state) addressParts.push(this.address.state);
-  if (this.address.country) addressParts.push(this.address.country);
-  if (this.address.zipCode) addressParts.push(this.address.zipCode);
-  return addressParts.join(', ') || 'No address provided';
-});
-
 // 🔹 Virtual relation to payments
 userSchema.virtual('payments', {
   ref: 'Payment',
@@ -133,7 +139,7 @@ userSchema.virtual('payments', {
 // 🔹 Indexes
 userSchema.index({ email: 1 });
 userSchema.index({ phoneNumber: 1 });
-userSchema.index({ 'address.country': 1 });
+userSchema.index({ address: 1 });
 userSchema.index({ registrationDate: -1 });
 userSchema.index({ status: 1 });
 

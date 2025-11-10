@@ -436,7 +436,7 @@ class PaymentService {
 
     async getPaymentStatus(paymentReference) {
         try {
-            const payment = await Payment.findOne({ paymentReference })
+            const payment = await Payment.findOne({ smepayOrderId:paymentReference })
                 .populate('user', 'name email phoneNumber isActive');
 
             if (!payment) {
