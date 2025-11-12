@@ -7,7 +7,7 @@ class EmailService {
     this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: process.env.SMTP_PORT,
-      secure: false, // true for 465, false for other ports
+      secure: true, // true for 465, false for other ports
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
@@ -170,15 +170,15 @@ class EmailService {
             <p>Your registration was successful</p>
           </div>
           <div class="content">
-            <p>Dear <strong>${user.name}</strong>,</p>
+            <p>Dear <strong>${user.firstName}${user.lastName}</strong>,</p>
             <p>Thank you for registering with us! Your account has been created successfully.</p>
             
             <div class="details">
               <h3>Registration Details:</h3>
-              <p><strong>Name:</strong> ${user.name}</p>
+              <p><strong>Name:</strong> ${user.firstName}${user.lastName}</p>
               <p><strong>Email:</strong> ${user.email}</p>
               <p><strong>Phone:</strong> ${user.phoneNumber}</p>
-              <p><strong>Reference ID:</strong> ${payment.paymentReference}</p>
+              <p><strong>Reference ID:</strong> ${payment.payment_reference}</p>
               <p><strong>Registration Date:</strong> ${new Date().toLocaleDateString()}</p>
             </div>
 
@@ -264,13 +264,13 @@ class EmailService {
             <p>Your registration is now complete</p>
           </div>
           <div class="content">
-            <p>Dear <strong>${user.name}</strong>,</p>
+            <p>Dear <strong>${user.firstName}${user.lastName}</strong>,</p>
             <p>Great news! Your payment has been confirmed and your account is now fully activated.</p>
             
             <div class="details">
               <h3>Payment Details:</h3>
               <p><strong>Amount Paid:</strong> <span class="amount">$${amount}</span></p>
-              <p><strong>Payment Reference:</strong> ${payment.paymentReference}</p>
+              <p><strong>Payment Reference:</strong> ${payment.payment_reference}</p>
               <p><strong>Transaction ID:</strong> ${payment.smepayTransactionId || 'N/A'}</p>
               <p><strong>Payment Date:</strong> ${new Date(payment.completedAt).toLocaleDateString()}</p>
               <p><strong>Status:</strong> <span style="color: #4CAF50; font-weight: bold;">Completed</span></p>
@@ -362,12 +362,12 @@ class EmailService {
             <p>Your registration is incomplete</p>
           </div>
           <div class="content">
-            <p>Dear <strong>${user.name}</strong>,</p>
+            <p>Dear <strong>${user.firstName}${user.lastName}</strong>,</p>
             <p>We were unable to process your payment. Your registration remains incomplete.</p>
             
             <div class="details">
               <h3>Payment Details:</h3>
-              <p><strong>Reference:</strong> ${payment.paymentReference}</p>
+              <p><strong>Reference:</strong> ${payment.payment_reference}</p>
               <p><strong>Failure Reason:</strong> ${payment.failureReason || 'Payment processing failed'}</p>
               <p><strong>Attempt Date:</strong> ${new Date(payment.initiatedAt).toLocaleDateString()}</p>
             </div>
