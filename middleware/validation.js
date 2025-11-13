@@ -6,6 +6,7 @@ const validateUserRegistration = (req, res, next) => {
     firstName: Joi.string().min(2).max(100).required().trim(),
     lastName: Joi.string().min(2).max(100).required().trim(),
     parentage: Joi.string().min(2).max(100).required().trim(),
+    grade: Joi.string().min(2).max(20).required().trim(),
     email: Joi.string().email().required().trim().lowercase(),
     phoneNumber: Joi.string().min(10).max(15).required().trim(),
     tehsil: Joi.string().min(5).max(20).required().trim(),
@@ -27,7 +28,7 @@ const validatePaymentInitiation = (req, res, next) => {
   const schema = Joi.object({
     userId: Joi.string().required(),
     amount: Joi.number().min(1).required(),
-    currency: Joi.string().valid('USD','INR', 'EUR', 'GBP', 'NGN', 'KES').default('INR'),
+    currency: Joi.string().valid('USD', 'INR', 'EUR', 'GBP', 'NGN', 'KES').default('INR'),
     metadata: Joi.object().optional()
   });
 

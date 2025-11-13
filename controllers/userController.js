@@ -8,7 +8,7 @@ const userController = {
   // Register new user
   async register(req, res) {
     try {
-      const { firstName, lastName, parentage, email, phoneNumber, address, tehsil, district } = req.body;
+      const { firstName, lastName, parentage, grade, email, phoneNumber, address, tehsil, district } = req.body;
 
       // Check if user already exists
       const existingUser = await User.findOne({ email });
@@ -24,6 +24,7 @@ const userController = {
         firstName,
         lastName,
         email,
+        grade,
         parentage,
         phoneNumber,
         address,
@@ -69,6 +70,7 @@ const userController = {
             lastName: user.lastName,
             email: user.email,
             phoneNumber: user.phoneNumber,
+            grade: user.grade,
             parentage: user.parentage,
             isActive: user.isActive,
             status: user.status,

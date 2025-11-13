@@ -22,6 +22,11 @@ const userSchema = new mongoose.Schema({
     minlength: [2, 'Parentage must be at least 2 characters long'],
     maxlength: [100, 'Parentage cannot exceed 100 characters']
   },
+  grade: {
+    type: String,
+    trim: true,
+    minlength: [2, 'Grade must be at least 2 characters long'],
+  },
   email: {
     type: String,
     required: [true, 'Email is required'],

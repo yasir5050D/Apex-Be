@@ -13,6 +13,10 @@ const indexRoutes = require('./routes/index');
 const userRoutes = require('./routes/users');
 const paymentRoutes = require('./routes/payments');
 
+const allowedOrigins = [
+    "http://localhost:3000"
+];
+
 // Initialize express app
 const app = express();
 
@@ -38,10 +42,18 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // CORS configuration
-app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-    credentials: true
-}));
+app.use(
+    cors({
+        origin: function (origin, callback) {
+            if (!origin || allowedOrigins.includes(origin)) {
+                callback(null, true);
+            } else {
+                callback(new Error("Not allowed by CORS"));
+            }
+        },
+        credentials: true,
+    })
+);
 
 // Routes
 app.use('/', indexRoutes);
