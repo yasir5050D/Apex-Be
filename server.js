@@ -14,7 +14,9 @@ const userRoutes = require('./routes/users');
 const paymentRoutes = require('./routes/payments');
 
 const allowedOrigins = [
-    "http://localhost:3000"
+    "http://localhost:3000",
+    'https://abacus.careerreadyjk.live',
+    'https://careerreadyjk.live',
 ];
 
 // Initialize express app
