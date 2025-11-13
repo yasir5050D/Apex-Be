@@ -17,6 +17,7 @@ const allowedOrigins = [
     "http://localhost:3000",
     'https://abacus.careerreadyjk.live',
     'https://careerreadyjk.live',
+    'https://wizard.smepay.in',
 ];
 
 // Initialize express app
