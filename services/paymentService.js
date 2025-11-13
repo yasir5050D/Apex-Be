@@ -4,224 +4,25 @@ const User = require('../models/User');
 const axios = require('axios');
 
 class PaymentService {
-    constructor() {
-        this.config = {
-            baseUrl: process.env.SMEPAY_BASE_URL || 'https://api.smepay.io',
-            apiKey: process.env.SMEPAY_API_KEY,
-            secretKey: process.env.SMEPAY_SECRET_KEY
-        };
-        this.isDevelopment = process.env.NODE_ENV === 'development' || !this.config.apiKey || this.config.apiKey === process.env.SMEPAY_API_KEY;
-    }
+    SMEPAY_BASE_URL =
+        process.env.NODE_ENV === 'development'
+            ? process.env.SMEPAY_STAGING_BASE_URL
+            : process.env.SMEPAY_PRODUCTION_BASE_URL;
 
-    // async initiatePayment(userId, amount, currency = 'INR', metadata = {}) {
-    //     try {
-    //         console.log('🔄 Initiating payment for user:', userId);
-    //         console.log('🔧 Development mode:', this.isDevelopment);
+    SMEPAY_API_KEY =
+        process.env.NODE_ENV === 'development'
+            ? process.env.SMEPAY_DEV_API_KEY
+            : process.env.SMEPAY_PROD_API_KEY;
 
-    //         const user = await User.findById(userId);
-    //         if (!user) {
-    //             throw new Error('User not found');
-    //         }
+    SMEPAY_SECRET_KEY =
+        process.env.NODE_ENV === 'development'
+            ? process.env.SMEPAY_DEV_SECRET_KEY
+            : process.env.SMEPAY_PROD_SECRET_KEY;
 
-    //         // Generate unique payment reference and order slug
-    //         const paymentReference = `PAY_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    //         const orderSlug = `order_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
 
-    //         // Create payment record
-    //         const payment = new Payment({
-    //             user: userId,
-    //             amount: 100,
-    //             currency,
-    //             paymentReference,
-    //             orderSlug, // Store the slug for SMEpay
-    //             description: 'User Registration Fee',
-    //             metadata: {
-    //                 ...metadata,
-    //                 isMock: false
-    //             }
-    //         });
+   
 
-    //         await payment.save();
-    //         console.log('✅ Payment record created:', paymentReference);
 
-    //         // Use mock payment for development
-    //         if (this.isDevelopment) {
-    //             console.log('🎯 Using MOCK SMEpay system for development');
-    //             return {
-    //                 paymentId: payment._id,
-    //                 order_slug: orderSlug, // SMEpay widget expects this
-    //                 payment_reference: paymentReference,
-    //                 amount: 100,
-    //                 currency: currency,
-    //                 userId: userId,
-    //                 checkout_url: `https://checkout.smepay.io/widget?slug=${orderSlug}`,
-    //                 isMock: false
-    //             };
-    //         }
-
-    //         // Real SMEpay.io API call
-    //         try {
-    //             const orderRequest = {
-    //                 amount: amount,
-    //                 currency: currency,
-    //                 customer_email: user.email,
-    //                 customer_name: user.name,
-    //                 customer_phone: user.phoneNumber,
-    //                 reference: paymentReference,
-    //                 callback_url: `${process.env.BASE_URL}/api/payments/callback`,
-    //                 redirect_url: `${process.env.FRONTEND_URL}/payment/success`,
-    //                 metadata: {
-    //                     userId: userId.toString(),
-    //                     purpose: 'registration'
-    //                 }
-    //             };
-
-    //             const response = await axios.post(
-    //                 `${this.config.baseUrl}/api/v1/orders`, // SMEpay create order endpoint
-    //                 orderRequest,
-    //                 {
-    //                     headers: {
-    //                         'Authorization': `Bearer ${this.config.apiKey}`,
-    //                         'Content-Type': 'application/json',
-    //                         'X-Signature': this.generateSignature(orderRequest)
-    //                     },
-    //                     timeout: 10000
-    //                 }
-    //             );
-
-    //             // Update payment with SMEpay order data
-    //             if (response.data.order_slug) {
-    //                 payment.orderSlug = response.data.order_slug;
-    //                 payment.smepayTransactionId = response.data.order_id;
-    //                 await payment.save();
-    //             }
-
-    //             return {
-    //                 paymentId: payment._id,
-    //                 order_slug: response.data.order_slug, // Actual SMEpay order slug
-    //                 payment_reference: paymentReference,
-    //                 amount: amount,
-    //                 currency: currency,
-    //                 userId: userId,
-    //                 checkout_url: response.data.checkout_url,
-    //                 isMock: false
-    //             };
-
-    //         } catch (gatewayError) {
-    //             console.warn('⚠️ SMEpay API failed, falling back to mock:', gatewayError.message);
-    //             // Fallback to mock response
-    //             return {
-    //                 paymentId: payment._id,
-    //                 order_slug: orderSlug,
-    //                 payment_reference: paymentReference,
-    //                 amount: 100,
-    //                 currency: currency,
-    //                 userId: userId,
-    //                 checkout_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/mock-payment?slug=${orderSlug}`,
-    //                 isMock: true
-    //             };
-    //         }
-
-    //     } catch (error) {
-    //         console.error('❌ Payment initiation error:', error);
-    //         throw new Error(`Payment initiation failed: ${error.message}`);
-    //     }
-    // }
-    // async initiatePayment(userId, amount, currency = 'INR', metadata = {}) {
-    //     try {
-    //         console.log('🔄 Initiating payment for user:', userId);
-    //         console.log('🔧 Environment mode:', process.env.NODE_ENV);
-
-    //         const user = await User.findById(userId);
-    //         if (!user) throw new Error('User not found');
-
-    //         // Generate unique identifiers
-    //         const paymentReference = `PAY_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    //         const orderSlug = `order_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
-
-    //         // 🟢 Prepare order request for SMEPay
-    //         const orderRequest = {
-    //             amount,
-    //             currency,
-    //             customer_email: user.email,
-    //             customer_name: user.name,
-    //             customer_phone: user.phoneNumber,
-    //             reference: paymentReference,
-    //             callback_url: `http://localhost:5000/api/payments/callback`,
-    //             redirect_url: `${process.env.FRONTEND_URL}/payment/success`,
-    //             metadata: {
-    //                 userId: userId.toString(),
-    //                 purpose: 'registration'
-    //             }
-    //         };
-
-    //         console.log('📤 Creating real SMEPay order:', orderRequest);
-
-    //         let response;
-    //         try {
-    //             // 🧭 Create order via SMEPay API
-    //             response = await axios.post(
-    //                 `${this.config.baseUrl}/orders`,
-    //                 orderRequest,
-    //                 {
-    //                     headers: {
-    //                         'Authorization': `Bearer ${this.config.apiKey}`,
-    //                         'Content-Type': 'application/json',
-    //                         'X-Signature': this.generateSignature(orderRequest)
-    //                     },
-    //                     timeout: 10000
-    //                 }
-    //             );
-    //             console.log('✅ SMEPay API response:', response.data);
-    //         } catch (gatewayError) {
-    //             console.warn('⚠️ SMEPay API failed, switching to mock:', gatewayError.message);
-    //         }
-
-    //         // 🧾 Build payment document (save regardless of SMEPay success)
-    //         const payment = new Payment({
-    //             user: userId,
-    //             amount,
-    //             currency,
-    //             paymentReference,
-    //             orderSlug: response?.data?.order_slug || orderSlug,
-    //             smepayTransactionId: response?.data?.order_id || null,
-    //             description: 'User Registration Fee',
-    //             metadata: {
-    //                 ...metadata,
-    //                 isMock: !response?.data?.order_id
-    //             },
-    //             paymentGateway: 'smepay',
-    //             status: 'pending'
-    //         });
-
-    //         await payment.save();
-    //         console.log('✅ Payment record created:', paymentReference);
-
-    //         // ✅ Return appropriate checkout URL
-    //         const checkoutUrl = response?.data?.checkout_url
-    //             ? response.data.checkout_url
-    //             : `https://checkout.smepay.io/widget?slug=${orderSlug}`;
-
-    //         return {
-    //             paymentId: payment._id,
-    //             order_slug: payment.orderSlug,
-    //             order_id: payment.smepayTransactionId, // null if mock
-    //             payment_reference: paymentReference,
-    //             amount,
-    //             currency,
-    //             userId,
-    //             checkout_url: checkoutUrl,
-    //             isMock: !response?.data?.order_id
-    //         };
-
-    //     } catch (error) {
-    //         console.error('❌ Payment initiation error:', error);
-    //         throw new Error(`Payment initiation failed: ${error.message}`);
-    //     }
-    // }
-    // const axios = require('axios');
-    // const Payment = require('../models/Payment');
-    // const User = require('../models/User');
 
     async initiatePayment(userId, amount, currency = 'INR', metadata = {}) {
         try {
@@ -234,27 +35,25 @@ class PaymentService {
             const orderSlug = `order_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
             const orderId = `ORD_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
 
-            // 🟢 STEP 1: Authenticate with SMEPay
+            // STEP 1: Authenticate with SMEPay
             console.log('🔑 Authenticating with SMEPay...');
-            const authResponse = await axios.post('https://staging.smepay.in/api/wiz/external/auth', {
-                client_id: process.env.SMEPAY_API_KEY,
-                client_secret: process.env.SMEPAY_SECRET_KEY
+            const authResponse = await axios.post(`${this.SMEPAY_BASE_URL}wiz/external/auth`, {
+                client_id: this.SMEPAY_API_KEY,
+                client_secret: this.SMEPAY_SECRET_KEY
             });
 
             const accessToken = authResponse.data?.access_token;
-            if (!accessToken) {
-                throw new Error('Failed to get access token from SMEPay');
-            }
+            if (!accessToken) throw new Error('Failed to get access token from SMEPay');
 
             console.log('✅ SMEPay Authentication successful');
 
-            // 🟢 STEP 2: Create Order
+            // STEP 2: Create Order
             console.log('📦 Creating order with SMEPay...');
             const orderPayload = {
-                client_id: process.env.SMEPAY_API_KEY,
+                client_id: this.SMEPAY_API_KEY,
                 amount: amount.toString(),
                 order_id: orderId,
-                callback_url: `http://localhost:5000/api/payments/callback`,
+                callback_url: process.env.CALLBACK_URL,
                 customer_details: {
                     email: user.email,
                     mobile: user.phoneNumber,
@@ -263,7 +62,7 @@ class PaymentService {
             };
 
             const orderResponse = await axios.post(
-                'https://extranet.smepay.in/api/wiz/external/order/create',
+                `${this.SMEPAY_BASE_URL}wiz/external/order/create`,
                 orderPayload,
                 {
                     headers: {
@@ -277,34 +76,31 @@ class PaymentService {
 
             const orderData = orderResponse.data || {};
 
-            // 🧾 STEP 3: Save payment record
+            // STEP 3: Save payment record
             const payment = new Payment({
                 user: userId,
                 amount,
-                smepayOrderId: orderResponse.data.order_id,
+                smepayOrderId: orderData.order_id,
                 currency,
                 paymentReference,
                 orderSlug: orderData.order_slug || orderSlug,
                 smepayTransactionId: orderData.order_id || orderId,
                 description: 'User Registration Fee',
                 paymentGateway: 'smepay',
-                metadata: {
-                    ...metadata,
-                    isMock: false
-                },
+                metadata: { ...metadata, isMock: false },
                 status: 'pending'
             });
 
             await payment.save();
             console.log('💾 Payment saved successfully:', paymentReference);
 
-            // 🟢 STEP 4: Return structured response
+            // STEP 4: Return structured response
             return {
                 success: true,
                 message: 'Payment initiated successfully',
                 data: {
                     paymentId: payment._id,
-                    order_id: orderResponse?.data?.order_id,
+                    order_id: orderData.order_id,
                     order_slug: payment.orderSlug,
                     payment_reference: paymentReference,
                     amount,
@@ -314,7 +110,6 @@ class PaymentService {
                     isMock: false
                 }
             };
-
         } catch (error) {
             console.error('❌ Payment initiation failed:', error.message);
             throw new Error(`Payment initiation failed: ${error.message}`);
@@ -436,7 +231,7 @@ class PaymentService {
 
     async getPaymentStatus(paymentReference) {
         try {
-            const payment = await Payment.findOne({ smepayOrderId:paymentReference })
+            const payment = await Payment.findOne({ smepayOrderId: paymentReference })
                 .populate('user', 'name email phoneNumber isActive');
 
             if (!payment) {
