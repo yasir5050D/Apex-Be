@@ -106,10 +106,10 @@ const paymentController = {
       //   await emailService.sendPaymentFailedEmail(payment.user, payment);
       // }
 
-      res.status(200).json({
-        success: true,
-        message: "Callback processed successfully"
-      });
+      // res.status(200).json({
+      //   success: true,
+      //   message: "Callback processed successfully"
+      // });
 
     } catch (err) {
       console.error("❌ Payment callback error:", err);
