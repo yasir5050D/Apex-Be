@@ -57,19 +57,20 @@ const paymentController = {
       const result = await paymentService.handlePaymentCallback(req.body);
 
       // Send appropriate email based on payment status
-      const payment = await Payment.findById(result.paymentId).populate('user');
+      const payment = await Payment.findOne({_id: result.paymentId}).populate('user');
+      console.log('payment', payment);
 
       console.log('Result', result);
-      if (result.status === 'completed' || result.status === 'TEST_SUCCESS') {
-        await emailService.sendPaymentConfirmationEmail(payment.user, payment);
-      } else if (result.status === 'failed') {
-        await emailService.sendPaymentFailedEmail(payment.user, payment);
-      }
+      // if (result.status === 'completed' || result.status === 'TEST_SUCCESS') {
+      //   await emailService.sendPaymentConfirmationEmail(payment.user, payment);
+      // } else if (result.status === 'failed') {
+      //   await emailService.sendPaymentFailedEmail(payment.user, payment);
+      // }
 
-      return  {
+      return res.status(200).json({
         success: true,
         message: 'Callback processed successfully'
-      };
+      })
 
     } catch (error) {
       console.error('❌ Payment callback error:', error);
