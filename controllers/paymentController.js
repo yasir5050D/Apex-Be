@@ -89,13 +89,14 @@ const paymentController = {
 
       // Handle ignored callbacks
       if (result.redirect) {
-         res.status(200).json({
+        return res.status(200).json({
           success: true,
-          message: result.message || "Ignored callback"
+          ignored: true,
+          message: result.message || "Callback ignored (already processed)"
         });
       }
 
-    
+
 
       // Handle actual status update
       // const payment = await Payment.findById(result.paymentId).populate("user");
