@@ -198,7 +198,7 @@ class PaymentService {
             payment.status = this.mapPaymentStatus(status);
           //  payment.smepayTransactionId = transaction_id || payment.smepayTransactionId;
 
-            if (status === 'TEST_SUCCESS') {
+            if (payment.status === 'completed') {
                 payment.completedAt = new Date();
 
                 // Activate user
@@ -207,7 +207,7 @@ class PaymentService {
                     status: 'active',
                     lastPaymentDate: new Date()
                 });
-            } else if (status === 'failed') {
+            } else if (payment.status === 'failed') {
                 payment.failureReason = failure_reason || 'Payment failed';
             }
 
@@ -313,7 +313,8 @@ class PaymentService {
 
     mapPaymentStatus(smepayStatus) {
         const statusMap = {
-            'success': 'TEST_SUCCESS',
+            'TEST_SUCCESS': 'completed',
+            'SUCCESS': 'completed',
             'failed': 'failed',
             'pending': 'pending',
             'cancelled': 'cancelled'

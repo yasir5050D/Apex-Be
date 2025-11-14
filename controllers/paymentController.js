@@ -59,7 +59,8 @@ const paymentController = {
       // Send appropriate email based on payment status
       const payment = await Payment.findById(result.paymentId).populate('user');
 
-      if (result.status === 'SUCCESS') {
+      console.log('Result', result);
+      if (result.status === 'completed' || result.status === 'TEST_SUCCESS') {
         await emailService.sendPaymentConfirmationEmail(payment.user, payment);
       } else if (result.status === 'failed') {
         await emailService.sendPaymentFailedEmail(payment.user, payment);
