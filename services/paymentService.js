@@ -183,8 +183,8 @@ class PaymentService {
 
             // Find payment by reference or order_slug
             let payment;
-            if (ref_id) {
-                payment = await Payment.findOne({ paymentReference: ref_id });
+            if (transaction_id) {
+                payment = await Payment.findOne({ orderSlug: transaction_id });
             }
             // } else if (order_slug) {
             //     payment = await Payment.findOne({ orderSlug: order_slug });
@@ -196,7 +196,7 @@ class PaymentService {
 
             // Update payment status
             payment.status = this.mapPaymentStatus(status);
-            payment.smepayTransactionId = transaction_id || payment.smepayTransactionId;
+          //  payment.smepayTransactionId = transaction_id || payment.smepayTransactionId;
 
             if (status === 'TEST_SUCCESS') {
                 payment.completedAt = new Date();
