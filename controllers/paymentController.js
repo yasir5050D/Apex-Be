@@ -59,7 +59,7 @@ const paymentController = {
       // Send appropriate email based on payment status
       const payment = await Payment.findById(result.paymentId).populate('user');
 
-      if (result.status === 'completed') {
+      if (result.status === 'SUCCESS') {
         await emailService.sendPaymentConfirmationEmail(payment.user, payment);
       } else if (result.status === 'failed') {
         await emailService.sendPaymentFailedEmail(payment.user, payment);
@@ -167,7 +167,7 @@ const paymentController = {
       throw new Error(`Payment update failed: ${error.message}`);
     }
   },
-  
+
   // Get user payment history
   async getUserPayments(req, res) {
     try {
