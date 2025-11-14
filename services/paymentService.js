@@ -178,15 +178,17 @@ class PaymentService {
 
     async handlePaymentCallback(callbackData) {
         try {
-            const { reference, order_slug, status, transaction_id, failure_reason } = callbackData;
+          
+            const {amount, processed_at, ref_id, transaction_id,  created_at, status } = callbackData;
 
             // Find payment by reference or order_slug
             let payment;
-            if (reference) {
-                payment = await Payment.findOne({ paymentReference: reference });
-            } else if (order_slug) {
-                payment = await Payment.findOne({ orderSlug: order_slug });
+            if (ref_id) {
+                payment = await Payment.findOne({ paymentReference: ref_id });
             }
+            // } else if (order_slug) {
+            //     payment = await Payment.findOne({ orderSlug: order_slug });
+            // }
 
             if (!payment) {
                 throw new Error('Payment not found');
@@ -196,7 +198,7 @@ class PaymentService {
             payment.status = this.mapPaymentStatus(status);
             payment.smepayTransactionId = transaction_id || payment.smepayTransactionId;
 
-            if (status === 'success') {
+            if (status === 'TEST_SUCCESS') {
                 payment.completedAt = new Date();
 
                 // Activate user
@@ -311,7 +313,7 @@ class PaymentService {
 
     mapPaymentStatus(smepayStatus) {
         const statusMap = {
-            'success': 'completed',
+            'success': 'TEST_SUCCESS',
             'failed': 'failed',
             'pending': 'pending',
             'cancelled': 'cancelled'
