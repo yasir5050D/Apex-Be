@@ -50,14 +50,14 @@ const paymentController = {
   },
 
   // Handle payment callback from SMEpay.io
-  async handleCallback(req, res) {
+  async handleCallback2(req, res) {
     try {
       console.log('🔄 Payment callback received:', req.body);
 
       const result = await paymentService.handlePaymentCallback(req.body);
 
       // Send appropriate email based on payment status
-      const payment = await Payment.findOne({_id: result.paymentId}).populate('user');
+      const payment = await Payment.findOne({ _id: result.paymentId }).populate('user');
       console.log('payment', payment);
 
       console.log('Result', result);
@@ -77,6 +77,51 @@ const paymentController = {
       res.status(500).json({
         success: false,
         error: error.message
+      });
+    }
+  },
+
+  async handleCallback(req, res) {
+    try {
+      console.log("🔄 Payment callback received:", req.body);
+
+      const result = await paymentService.handlePaymentCallback(req.body);
+
+      // Handle ignored callbacks
+      if (result.ignored) {
+        return res.status(200).json({
+          success: true,
+          message: result.message || "Ignored callback"
+        });
+      }
+
+      // Handle duplicate callbacks
+      if (result.duplicate) {
+        return res.status(200).json({
+          success: true,
+          message: "Duplicate callback ignored"
+        });
+      }
+
+      // Handle actual status update
+      // const payment = await Payment.findById(result.paymentId).populate("user");
+
+      // if (result.status === "completed") {
+      //   await emailService.sendPaymentConfirmationEmail(payment.user, payment);
+      // } else if (result.status === "failed") {
+      //   await emailService.sendPaymentFailedEmail(payment.user, payment);
+      // }
+
+      return res.status(200).json({
+        success: true,
+        message: "Callback processed successfully"
+      });
+
+    } catch (err) {
+      console.error("❌ Payment callback error:", err);
+      return res.status(500).json({
+        success: false,
+        error: err.message || "Internal Server Error"
       });
     }
   },

@@ -176,10 +176,10 @@ class PaymentService {
         }
     }
 
-    async handlePaymentCallback(callbackData) {
+    async handlePaymentCallback2(callbackData) {
         try {
-          
-            const {amount, processed_at, ref_id, transaction_id,  created_at, status } = callbackData;
+
+            const { amount, processed_at, ref_id, transaction_id, created_at, status } = callbackData;
 
             // Find payment by reference or order_slug
             let payment;
@@ -196,7 +196,7 @@ class PaymentService {
 
             // Update payment status
             payment.status = this.mapPaymentStatus(status);
-          //  payment.smepayTransactionId = transaction_id || payment.smepayTransactionId;
+            //  payment.smepayTransactionId = transaction_id || payment.smepayTransactionId;
 
             if (payment.status === 'completed') {
                 payment.completedAt = new Date();
@@ -224,6 +224,88 @@ class PaymentService {
             console.error('Payment callback error:', error);
             throw new Error(`Callback processing failed: ${error.message}`);
         }
+    }
+
+    async handlePaymentCallback(payload) {
+        console.log("🔄 Incoming SMEPay Callback:", payload);
+
+        // -----------------------------------------------
+        // 1. IGNORE empty/minimal callbacks
+        // -----------------------------------------------
+        if (!payload.ref_id && !payload.transaction_id && !payload.order_id) {
+            console.warn("⚠️ Ignored callback – missing identifiers:", payload);
+
+            return {
+                success: true,
+                ignored: true,
+                message: "Callback ignored (missing reference fields)"
+            };
+        }
+
+        // -----------------------------------------------
+        // 2. Extract identifiers safely
+        // -----------------------------------------------
+        const smepayRefId = payload.ref_id || null;
+        const smepayTxnId = payload.transaction_id || null;
+        const smepayStatus = payload.status || "UNKNOWN";
+
+        if (!smepayTxnId) {
+            console.warn("⚠️ Ignored callback – missing transaction_id:", payload);
+
+            return {
+                success: true,
+                ignored: true,
+                message: "Callback ignored (transaction_id missing)"
+            };
+        }
+
+        // -----------------------------------------------
+        // 3. Find payment by transaction ID
+        // -----------------------------------------------
+        const payment = await Payment.findOne({
+            orderSlug: smepayTxnId
+        }).populate("user");
+
+        if (!payment) {
+            console.error("❌ Payment not found for callback:", smepayTxnId);
+
+            return {
+                success: false,
+                error: "Payment not found",
+                ignored: true
+            };
+        }
+        payment.status = this.mapPaymentStatus(smepayStatus);
+        console.log("💳 Payment Matched:", payment._id);
+
+        // -----------------------------------------------
+        // 4. Prevent duplicate processing
+        // -----------------------------------------------
+        if (payment.status === "completed" || payment.status === "success") {
+            console.log("🔁 Duplicate callback ignored – already completed");
+
+            return {
+                success: true,
+                duplicate: true,
+                paymentId: payment._id
+            };
+        }
+
+    
+    
+        await payment.save();
+
+        console.log("✅ Payment updated:", {
+            id: payment._id,
+            status: payment.status
+        });
+
+        return {
+            success: true,
+            status: payment.status,
+            paymentId: payment._id,
+            userId: payment.user ? payment.user._id : null,
+        };
     }
 
     async getPaymentStatus(paymentReference) {
