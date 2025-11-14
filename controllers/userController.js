@@ -1,4 +1,3 @@
-// controllers/userController.js
 const User = require('../models/User');
 const Payment = require('../models/Payment');
 const emailService = require('../services/emailService');

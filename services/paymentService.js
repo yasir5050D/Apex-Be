@@ -19,11 +19,6 @@ class PaymentService {
             ? process.env.SMEPAY_DEV_SECRET_KEY
             : process.env.SMEPAY_PROD_SECRET_KEY;
 
-
-   
-
-
-
     async initiatePayment(userId, amount, currency = 'INR', metadata = {}) {
         try {
             console.log('🔄 Initiating payment for user:', userId);
@@ -57,7 +52,7 @@ class PaymentService {
                 customer_details: {
                     email: user.email,
                     mobile: user.phoneNumber,
-                    name: user.name || 'Customer'
+                    name: user.firstName || 'Student'
                 }
             };
 

@@ -9,7 +9,7 @@ const {
 const { authenticate, optionalAuth } = require('../middleware/auth');
 
 // Public routes
-router.post('/callback', validatePaymentCallback, paymentController.handleCallback);
+router.post('/callback', paymentController.handleCallback);
 router.get('/verify/:orderId', paymentController.getPaymentStatus);
 router.put('/update-status', paymentController.updatePaymentStatus);
 
