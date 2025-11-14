@@ -66,10 +66,10 @@ const paymentController = {
         await emailService.sendPaymentFailedEmail(payment.user, payment);
       }
 
-      res.json({
+      return  {
         success: true,
         message: 'Callback processed successfully'
-      });
+      };
 
     } catch (error) {
       console.error('❌ Payment callback error:', error);
