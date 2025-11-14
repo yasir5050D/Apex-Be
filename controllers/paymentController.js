@@ -88,20 +88,14 @@ const paymentController = {
       const result = await paymentService.handlePaymentCallback(req.body);
 
       // Handle ignored callbacks
-      if (result.ignored) {
-        return res.status(200).json({
+      if (result.redirect) {
+         res.status(200).json({
           success: true,
           message: result.message || "Ignored callback"
         });
       }
 
-      // Handle duplicate callbacks
-      if (result.duplicate) {
-        return res.status(200).json({
-          success: true,
-          message: "Duplicate callback ignored"
-        });
-      }
+    
 
       // Handle actual status update
       // const payment = await Payment.findById(result.paymentId).populate("user");
@@ -112,7 +106,7 @@ const paymentController = {
       //   await emailService.sendPaymentFailedEmail(payment.user, payment);
       // }
 
-      return res.status(200).json({
+      res.status(200).json({
         success: true,
         message: "Callback processed successfully"
       });

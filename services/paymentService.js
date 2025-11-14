@@ -232,13 +232,13 @@ class PaymentService {
         // -----------------------------------------------
         // 1. IGNORE empty/minimal callbacks
         // -----------------------------------------------
-        if (!payload.ref_id && !payload.transaction_id && !payload.order_id) {
-            console.warn("⚠️ Ignored callback – missing identifiers:", payload);
+        if (!payload.ref_id && !payload.transaction_id && !payload.order_id && payload.status === "SUCCESS") {
 
             return {
                 success: true,
                 ignored: true,
-                message: "Callback ignored (missing reference fields)"
+                redirect: true,
+                message: "Payment Completed"
             };
         }
 
@@ -249,16 +249,7 @@ class PaymentService {
         const smepayTxnId = payload.transaction_id || null;
         const smepayStatus = payload.status || "UNKNOWN";
 
-        if (!smepayTxnId) {
-            console.warn("⚠️ Ignored callback – missing transaction_id:", payload);
-
-            return {
-                success: true,
-                ignored: true,
-                message: "Callback ignored (transaction_id missing)"
-            };
-        }
-
+      
         // -----------------------------------------------
         // 3. Find payment by transaction ID
         // -----------------------------------------------
@@ -277,19 +268,6 @@ class PaymentService {
         }
         payment.status = this.mapPaymentStatus(smepayStatus);
         console.log("💳 Payment Matched:", payment._id);
-
-        // -----------------------------------------------
-        // 4. Prevent duplicate processing
-        // -----------------------------------------------
-        if (payment.status === "completed" || payment.status === "success") {
-            console.log("🔁 Duplicate callback ignored – already completed");
-
-            return {
-                success: true,
-                duplicate: true,
-                paymentId: payment._id
-            };
-        }
 
     
     
