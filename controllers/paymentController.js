@@ -62,7 +62,7 @@ const paymentController = {
         orderSlug: orderId
       }).populate("user");
 
-      if (result?.payment_status == "TEST_SUCCESS" || result?.payment_status == "SUCCESS") {
+      if (result?.paymentStatus == "completed") {
 
         return res.json({
           success: true,

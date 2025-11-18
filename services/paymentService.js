@@ -150,8 +150,12 @@ class PaymentService {
                     }
                 }
             );
+            const smepayStatus = this.mapPaymentStatus(response.data.payment_status);
 
-            return response.data;
+            return {
+                paymentStatus: smepayStatus,
+                status: response.data.status,
+            };
 
         } catch (error) {
             console.error("❌ SMEPay Order Validation Error:", error.message);
@@ -430,10 +434,20 @@ class PaymentService {
         const statusMap = {
             'TEST_SUCCESS': 'completed',
             'SUCCESS': 'completed',
+            'Success': 'completed',
+
             'FAILED': 'failed',
+            'Failed': 'failed',
             'TEST_FAILED': 'failed',
+
             'PENDING': 'pending',
-            'cancelled': 'cancelled'
+            'Pending': 'pending',
+
+            'CANCELLED': 'cancelled',
+            'Cancelled': 'cancelled',
+
+            'CREATED': 'created',
+            'Created': 'created'
         };
         return statusMap[smepayStatus] || 'failed';
     }
