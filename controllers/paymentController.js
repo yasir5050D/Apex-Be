@@ -49,33 +49,43 @@ const paymentController = {
     }
   },
 
-  // Handle payment callback from SMEpay.io
-  async handleCallback2(req, res) {
+  async validateOrder(req, res) {
+    const { orderId } = req.params;
+
     try {
-      console.log('🔄 Payment callback received:', req.body);
 
-      const result = await paymentService.handlePaymentCallback(req.body);
+      const amount = REGISTRATION_FEE;
 
-      // Send appropriate email based on payment status
-      const payment = await Payment.findOne({ _id: result.paymentId }).populate('user');
-      console.log('payment', payment);
+      const result = await paymentService.validateOrder(amount, orderId);
 
-      console.log('Result', result);
-      // if (result.status === 'completed' || result.status === 'TEST_SUCCESS') {
-      //   await emailService.sendPaymentConfirmationEmail(payment.user, payment);
-      // } else if (result.status === 'failed') {
-      //   await emailService.sendPaymentFailedEmail(payment.user, payment);
-      // }
+      const payment = await Payment.findOne({
+        orderSlug: orderId
+      }).populate("user");
 
-      return res.status(200).json({
-        success: true,
-        message: 'Callback processed successfully'
-      })
+      if (result?.payment_status == "TEST_SUCCESS" || result?.payment_status == "SUCCESS") {
+
+        return res.json({
+          success: true,
+          message: "Payment Verified Successfully",
+          data: {
+            ...result,
+            transactionId: payment ? payment.smepayTransactionId : null,
+            amount: amount
+          }
+        });
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: "Payment not completed or invalid",
+        });
+      }
 
     } catch (error) {
-      console.error('❌ Payment callback error:', error);
-      res.status(500).json({
+      console.error("❌ Payment Status Error:", error.message);
+
+      return res.status(500).json({
         success: false,
+        message: "Failed to validate payment",
         error: error.message
       });
     }
@@ -98,19 +108,18 @@ const paymentController = {
 
 
 
-      // Handle actual status update
-      // const payment = await Payment.findById(result.paymentId).populate("user");
+      const payment = await Payment.findById(result.paymentId).populate("user");
 
-      // if (result.status === "completed") {
-      //   await emailService.sendPaymentConfirmationEmail(payment.user, payment);
-      // } else if (result.status === "failed") {
-      //   await emailService.sendPaymentFailedEmail(payment.user, payment);
-      // }
+      if (result.status === "completed") {
+        await emailService.sendPaymentConfirmationEmail(payment.user, payment);
+      } else if (result.status === "failed") {
+        await emailService.sendPaymentFailedEmail(payment.user, payment);
+      }
 
-      // res.status(200).json({
-      //   success: true,
-      //   message: "Callback processed successfully"
-      // });
+      res.status(200).json({
+        success: true,
+        message: "Callback processed successfully"
+      });
 
     } catch (err) {
       console.error("❌ Payment callback error:", err);
@@ -118,6 +127,20 @@ const paymentController = {
         success: false,
         error: err.message || "Internal Server Error"
       });
+    }
+  },
+
+  async checkPaymentStatus(req, res) {
+    try {
+
+      const { orderId } = req.params;
+      const result = await paymentService.checkPaymentStatus(orderId);
+
+      return res.json(result);
+
+    } catch (error) {
+      console.error("Error checking payment status:", error);
+      res.status(500).json({ status: "FAILED", error: "Server error" });
     }
   },
 

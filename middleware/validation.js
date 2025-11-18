@@ -44,12 +44,9 @@ const validatePaymentInitiation = (req, res, next) => {
 
 const validatePaymentCallback = (req, res, next) => {
   const schema = Joi.object({
-    reference: Joi.string().required(),
-    status: Joi.string().valid('success', 'failed', 'pending', 'cancelled').required(),
+    status: Joi.string().valid('TEST_SUCCESS', 'SUCCESS', 'FAILED','TEST_FAILED','PENDING', 'CANCELLED').required(),
     transaction_id: Joi.string().optional(),
-    failure_reason: Joi.string().optional(),
     amount: Joi.number().optional(),
-    currency: Joi.string().optional()
   });
 
   const { error } = schema.validate(req.body);

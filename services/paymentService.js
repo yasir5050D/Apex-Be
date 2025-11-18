@@ -2,6 +2,8 @@
 const Payment = require('../models/Payment');
 const User = require('../models/User');
 const axios = require('axios');
+const { REGISTRATION_FEE } = require('../utils/constants');
+const { log } = require('console');
 
 class PaymentService {
     SMEPAY_BASE_URL =
@@ -19,9 +21,30 @@ class PaymentService {
             ? process.env.SMEPAY_DEV_SECRET_KEY
             : process.env.SMEPAY_PROD_SECRET_KEY;
 
+    /**
+* Authenticate with SMEPay and return Bearer token
+*/
+    async getAuthToken() {
+        try {
+            const response = await axios.post(`${this.SMEPAY_BASE_URL}wiz/external/auth`, {
+                client_id: this.SMEPAY_API_KEY,
+                client_secret: this.SMEPAY_SECRET_KEY
+            });
+
+            const token = response?.data?.access_token;
+            if (!token) {
+                throw new Error("SMEPay did not return access_token");
+            }
+
+            return token;
+        } catch (error) {
+            console.error("❌ SMEPay Auth Failed:", error.message);
+            throw new Error("Failed to authenticate with SMEPay");
+        }
+    }
+
     async initiatePayment(userId, amount, currency = 'INR', metadata = {}) {
         try {
-            console.log('🔄 Initiating payment for user:', userId);
 
             const user = await User.findById(userId);
             if (!user) throw new Error('User not found');
@@ -31,16 +54,10 @@ class PaymentService {
             const orderId = `ORD_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
 
             // STEP 1: Authenticate with SMEPay
-            console.log('🔑 Authenticating with SMEPay...');
-            const authResponse = await axios.post(`${this.SMEPAY_BASE_URL}wiz/external/auth`, {
-                client_id: this.SMEPAY_API_KEY,
-                client_secret: this.SMEPAY_SECRET_KEY
-            });
 
-            const accessToken = authResponse.data?.access_token;
+            const accessToken = await this.getAuthToken();
             if (!accessToken) throw new Error('Failed to get access token from SMEPay');
 
-            console.log('✅ SMEPay Authentication successful');
 
             // STEP 2: Create Order
             console.log('📦 Creating order with SMEPay...');
@@ -111,9 +128,40 @@ class PaymentService {
         }
     }
 
+    /**
+   * Validate order status from SMEPay
+   */
+    async validateOrder(amount, slug) {
+        try {
+            const token = await this.getAuthToken();
+            const payload = {
+                client_id: this.SMEPAY_API_KEY,
+                amount: amount,
+                slug: slug
+            };
+
+            const response = await axios.post(
+                `${this.SMEPAY_BASE_URL}wiz/external/order/validate`,
+                payload,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    }
+                }
+            );
+
+            return response.data;
+
+        } catch (error) {
+            console.error("❌ SMEPay Order Validation Error:", error.message);
+            throw new Error("Something went wrong while validating order");
+        }
+    }
+
+
     async simulatePaymentSuccess(orderSlug) {
         try {
-            console.log('🎯 Simulating successful payment for:', orderSlug);
 
             const payment = await Payment.findOne({ orderSlug });
             if (!payment) {
@@ -249,7 +297,7 @@ class PaymentService {
         const smepayTxnId = payload.transaction_id || null;
         const smepayStatus = payload.status || "UNKNOWN";
 
-      
+
         // -----------------------------------------------
         // 3. Find payment by transaction ID
         // -----------------------------------------------
@@ -267,10 +315,7 @@ class PaymentService {
             };
         }
         payment.status = this.mapPaymentStatus(smepayStatus);
-        console.log("💳 Payment Matched:", payment._id);
 
-    
-    
         await payment.save();
 
         console.log("✅ Payment updated:", {
@@ -284,6 +329,16 @@ class PaymentService {
             paymentId: payment._id,
             userId: payment.user ? payment.user._id : null,
         };
+    }
+
+    async checkPaymentStatus(orderId) {
+        const payment = await Payment.findOne({ orderId });
+
+        if (!payment) {
+            return { status: "PENDING" };
+        }
+
+        return { status: payment.status };
     }
 
     async getPaymentStatus(paymentReference) {
@@ -375,8 +430,9 @@ class PaymentService {
         const statusMap = {
             'TEST_SUCCESS': 'completed',
             'SUCCESS': 'completed',
-            'failed': 'failed',
-            'pending': 'pending',
+            'FAILED': 'failed',
+            'TEST_FAILED': 'failed',
+            'PENDING': 'pending',
             'cancelled': 'cancelled'
         };
         return statusMap[smepayStatus] || 'failed';

@@ -178,7 +178,6 @@ class EmailService {
               <p><strong>Name:</strong> ${user.firstName}${user.lastName}</p>
               <p><strong>Email:</strong> ${user.email}</p>
               <p><strong>Phone:</strong> ${user.phoneNumber}</p>
-              <p><strong>Reference ID:</strong> ${payment.payment_reference}</p>
               <p><strong>Registration Date:</strong> ${new Date().toLocaleDateString()}</p>
             </div>
 
@@ -186,10 +185,10 @@ class EmailService {
             
             <p>If you have any questions, feel free to contact our support team.</p>
             
-            <p>Best regards,<br><strong>The Registration Team</strong></p>
+            <p>Best regards,<br><strong>Career Ready J&K Team</strong></p>
           </div>
           <div class="footer">
-            <p>&copy; ${new Date().getFullYear()} Your Company Name. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} Career Ready J&K. All rights reserved.</p>
             <p>This is an automated message, please do not reply to this email.</p>
           </div>
         </div>
@@ -199,7 +198,7 @@ class EmailService {
   }
 
   getPaymentConfirmationTemplate(user, payment) {
-    const amount = (payment.amount / 100).toFixed(2);
+    const amount = payment.amount
     return `
       <!DOCTYPE html>
       <html>
@@ -269,8 +268,8 @@ class EmailService {
             
             <div class="details">
               <h3>Payment Details:</h3>
-              <p><strong>Amount Paid:</strong> <span class="amount">$${amount}</span></p>
-              <p><strong>Payment Reference:</strong> ${payment.payment_reference}</p>
+              <p><strong>Amount Paid:</strong> <span class="amount">₹${amount}</span></p>
+              <p><strong>Payment Reference:</strong> ${payment.paymentReference}</p>
               <p><strong>Transaction ID:</strong> ${payment.smepayTransactionId || 'N/A'}</p>
               <p><strong>Payment Date:</strong> ${new Date(payment.completedAt).toLocaleDateString()}</p>
               <p><strong>Status:</strong> <span style="color: #4CAF50; font-weight: bold;">Completed</span></p>
@@ -280,10 +279,10 @@ class EmailService {
             
             <p>Thank you for choosing us. We're excited to have you as a member!</p>
             
-            <p>Best regards,<br><strong>The Registration Team</strong></p>
+            <p>Best regards,<br><strong>Career Ready J&K</strong></p>
           </div>
           <div class="footer">
-            <p>&copy; ${new Date().getFullYear()} Your Company Name. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} Career Ready J&K Team. All rights reserved.</p>
             <p>This is an automated message, please do not reply to this email.</p>
           </div>
         </div>
@@ -367,7 +366,7 @@ class EmailService {
             
             <div class="details">
               <h3>Payment Details:</h3>
-              <p><strong>Reference:</strong> ${payment.payment_reference}</p>
+              <p><strong>Reference:</strong> ${payment.paymentReference}</p>
               <p><strong>Failure Reason:</strong> ${payment.failureReason || 'Payment processing failed'}</p>
               <p><strong>Attempt Date:</strong> ${new Date(payment.initiatedAt).toLocaleDateString()}</p>
             </div>
@@ -382,10 +381,10 @@ class EmailService {
 
             <p>If you continue to experience issues, please contact our support team for assistance.</p>
             
-            <p>Best regards,<br><strong>The Registration Team</strong></p>
+            <p>Best regards,<br><strong>Career Ready J&K Team</strong></p>
           </div>
           <div class="footer">
-            <p>&copy; ${new Date().getFullYear()} Your Company Name. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} Career Ready J&K. All rights reserved.</p>
             <p>This is an automated message, please do not reply to this email.</p>
           </div>
         </div>
