@@ -2,24 +2,13 @@
 const Payment = require('../models/Payment');
 const User = require('../models/User');
 const axios = require('axios');
-const { REGISTRATION_FEE } = require('../utils/constants');
-const { log } = require('console');
 
 class PaymentService {
-    SMEPAY_BASE_URL =
-        process.env.NODE_ENV === 'development'
-            ? process.env.SMEPAY_STAGING_BASE_URL
-            : process.env.SMEPAY_PRODUCTION_BASE_URL;
 
-    SMEPAY_API_KEY =
-        process.env.NODE_ENV === 'development'
-            ? process.env.SMEPAY_DEV_API_KEY
-            : process.env.SMEPAY_PROD_API_KEY;
+    SMEPAY_BASE_URL = process.env.SMEPAY_BASE_URL;
+    SMEPAY_API_KEY = process.env.SMEPAY_API_KEY;
+    SMEPAY_SECRET_KEY = process.env.SMEPAY_SECRET_KEY;
 
-    SMEPAY_SECRET_KEY =
-        process.env.NODE_ENV === 'development'
-            ? process.env.SMEPAY_DEV_SECRET_KEY
-            : process.env.SMEPAY_PROD_SECRET_KEY;
 
     /**
 * Authenticate with SMEPay and return Bearer token
