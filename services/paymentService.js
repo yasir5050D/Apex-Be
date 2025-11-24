@@ -217,58 +217,9 @@ class PaymentService {
         }
     }
 
-    async handlePaymentCallback2(callbackData) {
-        try {
-
-            const { amount, processed_at, ref_id, transaction_id, created_at, status } = callbackData;
-
-            // Find payment by reference or order_slug
-            let payment;
-            if (transaction_id) {
-                payment = await Payment.findOne({ orderSlug: transaction_id });
-            }
-            // } else if (order_slug) {
-            //     payment = await Payment.findOne({ orderSlug: order_slug });
-            // }
-
-            if (!payment) {
-                throw new Error('Payment not found');
-            }
-
-            // Update payment status
-            payment.status = this.mapPaymentStatus(status);
-            //  payment.smepayTransactionId = transaction_id || payment.smepayTransactionId;
-
-            if (payment.status === 'completed') {
-                payment.completedAt = new Date();
-
-                // Activate user
-                await User.findByIdAndUpdate(payment.user, {
-                    isActive: true,
-                    status: 'active',
-                    lastPaymentDate: new Date()
-                });
-            } else if (payment.status === 'failed') {
-                payment.failureReason = failure_reason || 'Payment failed';
-            }
-
-            await payment.save();
-
-            return {
-                success: true,
-                paymentId: payment._id,
-                status: payment.status,
-                userId: payment.user
-            };
-
-        } catch (error) {
-            console.error('Payment callback error:', error);
-            throw new Error(`Callback processing failed: ${error.message}`);
-        }
-    }
 
     async handlePaymentCallback(payload) {
-        console.log("🔄 Incoming SMEPay Callback:", payload);
+        console.log("Incoming SMEPay Callback:", payload);
 
         // -----------------------------------------------
         // 1. IGNORE empty/minimal callbacks

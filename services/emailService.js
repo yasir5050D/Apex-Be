@@ -27,12 +27,13 @@ class EmailService {
     }
   }
 
-  async sendRegistrationEmail(user, payment) {
+  async sendRegistrationEmail(user) {
+
     const mailOptions = {
-      from: `"Registration System" <${process.env.FROM_EMAIL}>`,
+      from: `"Career Ready J&K" <${process.env.FROM_EMAIL}>`,
       to: user.email,
-      subject: 'Welcome - Registration Successful',
-      html: this.getRegistrationEmailTemplate(user, payment)
+      subject: "🎉 Registration Successful – Abacus Learning",
+      html: this.getRegistrationEmailTemplate(user),
     };
 
     try {
@@ -106,7 +107,7 @@ class EmailService {
     }
   }
 
-  getRegistrationEmailTemplate(user, payment) {
+  getRegistrationEmailTemplate(user) {
     return `
       <!DOCTYPE html>
       <html>
@@ -166,22 +167,32 @@ class EmailService {
       <body>
         <div class="container">
           <div class="header">
-            <h1>Welcome to Our Service! 🎉</h1>
-            <p>Your registration was successful</p>
+          <h2 style="color: #4F46E5;">
+          🎉 Registration Successful!</h2>
+
           </div>
           <div class="content">
-            <p>Dear <strong>${user.firstName}${user.lastName}</strong>,</p>
-            <p>Thank you for registering with us! Your account has been created successfully.</p>
-            
+           
+              <p>Dear <strong>${user.firstName} ${user.lastName}</strong>,</p>
+      <p>Thank you for registering for <strong>Abacus Learning</strong>. Your details have been successfully received.</p>
+
             <div class="details">
+            
               <h3>Registration Details:</h3>
-              <p><strong>Name:</strong> ${user.firstName}${user.lastName}</p>
+              <p><strong>Name:</strong> ${user.firstName} ${user.lastName}</p>
               <p><strong>Email:</strong> ${user.email}</p>
               <p><strong>Phone:</strong> ${user.phoneNumber}</p>
               <p><strong>Registration Date:</strong> ${new Date().toLocaleDateString()}</p>
-            </div>
+             <p><strong>Grade:</strong> ${user.grade}</p>
+        <p><strong>Phone:</strong> ${user.phoneNumber}</p>
+        <p><strong>Address:</strong> ${user.address}</p>
+        <p><strong>District:</strong> ${user.district}</p>
+        <p><strong>Tehsil:</strong> ${user.tehsil}</p>
+              </div>
 
-            <p>To complete your registration and activate your account, please proceed with the payment.</p>
+            <p>
+            You will receive the payment link soon. If needed, our team will call you to help you complete the registration process.
+      </p>
             
             <p>If you have any questions, feel free to contact our support team.</p>
             

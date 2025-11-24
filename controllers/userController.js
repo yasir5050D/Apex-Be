@@ -33,6 +33,9 @@ const userController = {
 
       await user.save();
 
+      // Send registration email
+      await emailService.sendRegistrationEmail(user);
+
       res.status(201).json({
         success: true,
         message: 'User registered successfully',

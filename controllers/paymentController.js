@@ -31,7 +31,6 @@ const paymentController = {
 
       // Send registration email
       await emailService.sendRegistrationEmail(user, {
-        paymentReference: result.payment_reference
       });
 
       res.json({
@@ -93,7 +92,7 @@ const paymentController = {
 
   async handleCallback(req, res) {
     try {
-      console.log("🔄 Payment callback received:", req.body);
+      console.log("Payment callback received:", req.body);
 
       const result = await paymentService.handlePaymentCallback(req.body);
 
