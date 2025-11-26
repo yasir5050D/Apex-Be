@@ -41,12 +41,12 @@ exports.register = async (req, res) => {
 
       // send to notify email if configured
       if (NOTIFY_EMAIL) {
-        await this.emailService.sendFranchiseEmail(NOTIFY_EMAIL, subject, text, pdfPath);
+        await emailService.sendFranchiseEmail(NOTIFY_EMAIL, subject, text, pdfPath);
       }
 
       // send to applicant email as well (optional)
       if (franchise.email) {
-        await this.emailService.sendFranchiseEmail(franchise.email, 'Your Franchise Application (Career Ready JK)', 'Thank you for applying. Please find attached the application PDF.', pdfPath);
+        await emailService.sendFranchiseEmail(franchise.email, 'Your Franchise Application (Career Ready JK)', 'Thank you for applying. Please find attached the application PDF.', pdfPath);
       }
     } catch (emailErr) {
       console.error('Email send failed', emailErr);
