@@ -76,32 +76,6 @@ const userSchema = new mongoose.Schema({
     trim: true,
     maxlength: [500, 'Address cannot exceed 500 characters'],
     default: ''
-    // street: {
-    //   type: String,
-    //   trim: true,
-    //   maxlength: [200, 'Street cannot exceed 200 characters']
-    // },
-    // city: {
-    //   type: String,
-    //   trim: true,
-    //   maxlength: [100, 'City cannot exceed 100 characters']
-    // },
-    // state: {
-    //   type: String,
-    //   trim: true,
-    //   maxlength: [100, 'State cannot exceed 100 characters']
-    // },
-    // country: {
-    //   type: String,
-    //   trim: true,
-    //   maxlength: [100, 'Country cannot exceed 100 characters'],
-    //   default: 'India'
-    // },
-    // zipCode: {
-    //   type: String,
-    //   trim: true,
-    //   maxlength: [20, 'ZIP code cannot exceed 20 characters']
-    // }
   },
 
   registrationDate: {

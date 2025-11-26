@@ -24,6 +24,42 @@ const validateUserRegistration = (req, res, next) => {
   next();
 };
 
+
+const validateFranchiseRegistration = (req, res, next) => {
+  const schema = Joi.object({
+    franchiseType: Joi.string().valid("District Franchise", "Unit Franchise").required(),
+    fullName: Joi.string().min(3).max(100).required(),
+    fatherName: Joi.string().min(3).max(100).required(),
+    gender: Joi.string().valid("Male", "Female", "Other").required(),
+
+    email: Joi.string().email().required(),
+    aadhar: Joi.string().pattern(/^\d{12}$/).required(),
+    pan: Joi.string().pattern(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/).required(),
+
+    mobile: Joi.string().pattern(/^(\+91[\-\s]?)?[6-9]\d{9}$/).required(),
+
+    address: Joi.string().min(10).max(300).required(),
+    district: Joi.string().min(3).max(100).required(),
+    tehsil: Joi.string().min(3).max(100).required(),
+
+    pincode: Joi.string().pattern(/^\d{6}$/).required(),
+
+    districtApplyingFor: Joi.string().min(3).max(100).required(),
+  });
+
+  const { error } = schema.validate(req.body);
+
+  if (error) {
+    return res.status(400).json({
+      success: false,
+      error: error.details[0].message
+    });
+  }
+
+  next();
+};
+
+
 const validatePaymentInitiation = (req, res, next) => {
   const schema = Joi.object({
     userId: Joi.string().required(),
@@ -62,5 +98,6 @@ const validatePaymentCallback = (req, res, next) => {
 module.exports = {
   validateUserRegistration,
   validatePaymentInitiation,
+  validateFranchiseRegistration,
   validatePaymentCallback
 };

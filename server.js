@@ -4,6 +4,9 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
+const path = require('path');
+const fs = require('fs');
+
 
 const connectDB = require('./config/database');
 const errorHandler = require('./middleware/errorHandler');
@@ -12,13 +15,21 @@ const errorHandler = require('./middleware/errorHandler');
 const indexRoutes = require('./routes/index');
 const userRoutes = require('./routes/users');
 const paymentRoutes = require('./routes/payments');
-
+const franchiseRoutes = require('./routes/franchiseRoutes');
 const allowedOrigins = [
     "http://localhost:3000",
     'https://abacus.careerreadyjk.live',
     'https://careerreadyjk.live',
     'https://wizard.smepay.in',
 ];
+
+const UPLOADS_DIR = process.env.UPLOADS_DIR || 'uploads';
+const ASSETS_DIR = process.env.ASSETS_DIR || 'assets';
+
+// ensure directories exist
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+if (!fs.existsSync(ASSETS_DIR)) fs.mkdirSync(ASSETS_DIR, { recursive: true });
+
 
 // Initialize express app
 const app = express();
@@ -62,6 +73,11 @@ app.use(
 app.use('/', indexRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/franchise', franchiseRoutes);
+
+app.use('/uploads', express.static(path.join(process.cwd(), UPLOADS_DIR)));
+app.use('/assets', express.static(path.join(process.cwd(), ASSETS_DIR)));
+
 
 // Health check endpoint
 app.get('/health', (req, res) => {

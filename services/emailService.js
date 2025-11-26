@@ -45,6 +45,17 @@ class EmailService {
       return { success: false, error: error.message };
     }
   }
+ 
+  async sendFranchiseEmail(to, subject, text, attachmentPath) {
+    const mailOptions = {
+      from: process.env.EMAIL_FROM,
+      to,
+      subject,
+      text,
+      attachments: attachmentPath ? [{ path: attachmentPath }] : []
+    };
+    return transporter.sendMail(mailOptions);
+  }
 
   async sendPaymentConfirmationEmail(user, payment) {
     const mailOptions = {
