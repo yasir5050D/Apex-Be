@@ -54,7 +54,7 @@ class EmailService {
       text,
       attachments: attachmentPath ? [{ path: attachmentPath }] : []
     };
-    return transporter.sendMail(mailOptions);
+    return this.transporter.sendMail(mailOptions);
   }
 
   async sendPaymentConfirmationEmail(user, payment) {
