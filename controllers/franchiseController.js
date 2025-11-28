@@ -5,7 +5,7 @@ const path = require("path");
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5000';
 const UPLOADS_DIR = process.env.UPLOADS_DIR || 'uploads';
-const NOTIFY_EMAIL = process.env.FROM_EMAIL || null;
+const NOTIFY_EMAIL = process.env.NOTIFY_EMAIL || null;
 
 exports.register = async (req, res) => {
   try {
@@ -23,8 +23,6 @@ exports.register = async (req, res) => {
       return res.status(409).json({ success: false, error: 'An application already exists with same email/Aadhaar/mobile' });
     }
 
-
-
     // Save to DB
     const franchise = new Franchise(formData);
     await franchise.save();
@@ -32,27 +30,28 @@ exports.register = async (req, res) => {
     // generate pdf
     const pdfResult = await generateFranchisePDF(formData, franchise._id);
     const pdfUrl = `${BASE_URL}/uploads/${pdfResult.filename}`;
-    const pdfPath = path.join(process.cwd(), pdfResult.filepath);
+    //const pdfPath = path.join(process.cwd(), pdfResult.filepath);
 
     // send emails (notify team and applicant) - don't fail the request if email fails
     try {
       const subject = `Franchise Application Received - ${franchise.fullName || franchise._id}`;
-      const text = `A new franchise application has been submitted.\nApplicant: ${franchise.fullName}\nDistrict Applying For: ${franchise.districtApplyingFor}\n\nPDF attached.`;
+      const text = `A new franchise application has been submitted.\nApplicant: ${franchise.fullName}\nDistrict Applying For: ${franchise.districtApplyingFor}\n\nPDF link attached.`;
 
       // send to notify email if configured
       if (NOTIFY_EMAIL) {
-        await emailService.sendFranchiseEmail(NOTIFY_EMAIL, subject, text, pdfPath);
+        await emailService.sendFranchiseEmail(NOTIFY_EMAIL, subject, text, pdfUrl);
       }
 
       // send to applicant email as well (optional)
       if (franchise.email) {
-        await emailService.sendFranchiseEmail(franchise.email, 'Your Franchise Application (Career Ready JK)', 'Thank you for applying. Please find attached the application PDF.', pdfPath);
+        await emailService.sendFranchiseEmail(franchise.email, 'Your Franchise Application (Career Ready JK)', 'Thank you for applying. Please find the application link .', pdfUrl);
       }
     } catch (emailErr) {
       console.error('Email send failed', emailErr);
     }
 
     res.status(201).json({
+      id: franchise._id,
       success: true,
       message: 'Franchise registration saved and PDF generated',
       pdfUrl

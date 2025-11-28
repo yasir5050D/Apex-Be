@@ -45,17 +45,56 @@ class EmailService {
       return { success: false, error: error.message };
     }
   }
- 
-  async sendFranchiseEmail(to, subject, text, attachmentPath) {
+
+
+  async sendFranchiseEmail(to, subject, text, pdfUrl) {
     const mailOptions = {
-      from: process.env.EMAIL_FROM,
+      from: process.env.FROM_EMAIL,
       to,
       subject,
-      text,
-      attachments: attachmentPath ? [{ path: attachmentPath }] : []
+      html: `
+    <div style="font-family: Arial, sans-serif; background:#f5f7fa; padding:20px;">
+      <div style="max-width:600px; margin:auto; background:white; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+        
+        <!-- Header -->
+        <div style="background:#4f46e5; color:white; padding:20px; text-align:center;">
+          <h2 style="margin:0;">Career Ready JK</h2>
+          <p style="margin:5px 0 0; font-size:14px;">Abacus Learning – Franchise Application</p>
+        </div>
+
+        <!-- Body -->
+        <div style="padding:25px; color:#333;">
+          <p style="font-size:16px;">${text}</p>
+
+          <div style="margin-top:20px; padding:15px; background:#f0f4ff; border-left:4px solid #4f46e5; border-radius:6px;">
+            <strong>Download Your Application:</strong><br><br>
+            <a href="${pdfUrl}" target="_blank" style="font-size:16px; color:#4f46e5; text-decoration:none; font-weight:bold;">
+              📄 Click here to download your application
+            </a>
+          </div>
+
+          <p style="margin-top:25px; font-size:14px; color:#555;">
+            If you did not apply for this franchise request, please ignore this email.
+          </p>
+
+          <hr style="margin:25px 0;">
+
+          <p style="font-size:14px; text-align:center; color:#777;">
+            Thank you,<br>
+            <strong>Career Ready JK Team</strong><br>
+            Abacus Learning Program
+          </p>
+        </div>
+
+      </div>
+    </div>
+    `
     };
+
+    console.log("Email sending to:", to, "PDF:", pdfUrl);
     return this.transporter.sendMail(mailOptions);
   }
+
 
   async sendPaymentConfirmationEmail(user, payment) {
     const mailOptions = {
